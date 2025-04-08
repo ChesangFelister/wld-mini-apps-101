@@ -13,11 +13,13 @@
     "@worldcoin/minikit-js": "1.6.1",
     "eruda": "^3.2.3",
     "jose": "^6.0.10",
+    "lucide-react": "^0.487.0",
     "nanoid": "^5.1.4",
     "next": "14.2.6",
     "next-auth": "^4.24.7",
     "react": "^18",
     "react-dom": "^18",
+    "sonner": "^2.0.3",
     "viem": "^2.23.5"
   },
   "devDependencies": {

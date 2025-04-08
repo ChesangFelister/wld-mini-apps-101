@@ -1,4 +1,3 @@
-"use client";
 import { MiniKit, WalletAuthInput } from "@worldcoin/minikit-js";
 import { Button } from "@worldcoin/mini-apps-ui-kit-react";
 import { useCallback, useEffect, useState } from "react";
@@ -19,7 +18,11 @@ type User = {
     profilePictureUrl: string | null;
 };
 
-export const Login = () => {
+type LoginProps = {
+    onLoginSuccess?: (user: User) => void;
+};
+
+export const Login = ({ onLoginSuccess }: LoginProps) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(false);
     
@@ -30,12 +33,15 @@ export const Login = () => {
                 const data = await response.json();
                 if (data.user) {
                     setUser(data.user);
+                    if (onLoginSuccess) {
+                        onLoginSuccess(data.user);
+                    }
                 }
             }
         } catch (error) {
             console.error("Error fetching user data:", error);
         }
-    }, []);
+    }, [onLoginSuccess]);
     
     useEffect(() => {
         refreshUserData();
@@ -46,9 +52,7 @@ export const Login = () => {
             setLoading(true);
             const res = await fetch(`/api/nonce`);
             const { nonce } = await res.json();
-
             const { finalPayload } = await MiniKit.commandsAsync.walletAuth(walletAuthInput(nonce));
-
             if (finalPayload.status === 'error') {
                 setLoading(false);
                 return;
@@ -63,9 +67,13 @@ export const Login = () => {
                         nonce,
                     }),
                 });
-
                 if (response.status === 200) {
-                    setUser(MiniKit.user)
+                    const userData = await response.json();
+                    const userInfo = userData.user || MiniKit.user;
+                    setUser(userInfo);
+                    if (onLoginSuccess) {
+                        onLoginSuccess(userInfo);
+                    }
                 }
                 setLoading(false);
             }
@@ -75,52 +83,23 @@ export const Login = () => {
         }
     };
 
-    const handleLogout = async () => {
-        try {
-            await fetch('/api/auth/logout', {
-                method: 'POST',
-            });
-            
-            setUser(null);
-        } catch (error) {
-            console.error("Logout error:", error);
-        }
-    };
-
     return (
         <div className="flex flex-col items-center">
-            {!user ? (
-                <Button 
-                    onClick={handleLogin} 
-                    disabled={loading}
-                >
-                    {loading ? "Connecting..." : "Login"}
-                </Button>
-            ) : (
-                <div className="flex flex-col items-center space-y-2">
-                    <div className="text-green-600 font-medium">✓ Connected</div>
-                    <div className="flex items-center space-x-2">
-                        {user?.profilePictureUrl && (
-                            <img
-                                src={user.profilePictureUrl}
-                                alt="Profile"
-                                className="w-8 h-8 rounded-full"
-                            />
-                        )}
-                        <span className="font-medium">
-                            {user?.username || user?.walletAddress.slice(0, 6) + '...' + user?.walletAddress.slice(-4)}
-                        </span>
+            <Button 
+                onClick={handleLogin}
+                disabled={loading}
+                className="w-full py-3 transition-all duration-200 hover:opacity-90"
+            >
+                {loading ? (
+                    <div className="flex items-center justify-center">
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Connecting...
                     </div>
-                    <Button
-                        onClick={handleLogout}
-                        variant="secondary"
-                        size="md"
-                        disabled={loading}
-                    >
-                        {loading ? "Signing Out..." : "Sign Out"}
-                    </Button>
-                </div>
-            )}
+                ) : "Signin"}
+            </Button>
         </div>
-    )
+    );
 };
