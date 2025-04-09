@@ -1,66 +1,171 @@
 "use client";
 import { useEffect, useState } from "react";
 import { MiniKit } from "@worldcoin/minikit-js";
-import { VerifyBlock } from "@/components/Verify";
-import { PayBlock } from "@/components/Pay";
-import { WalletAuth } from "@/components/WalletAuth";
 import { Login } from "@/components/Login";
+import Image from "next/image";
+import { ClaimCoin } from "@/components/ClaimCoin";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
+  const [minikitAvailable, setMinikitAvailable] = useState(false);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    let mounted = true;
+
     const checkMiniKit = async () => {
-      const isInstalled = MiniKit.isInstalled();
-      if (isInstalled) {
-        setIsLoading(false);
-      } else {
-        setTimeout(checkMiniKit, 500);
+      try {
+        const isInstalled = await MiniKit.isInstalled();
+        if (mounted) {
+          setMinikitAvailable(isInstalled);
+          setIsLoading(false);
+          if (!isInstalled) {
+            timeoutId = setTimeout(checkMiniKit, 500);
+          }
+        }
+      } catch (error) {
+        if (mounted) {
+          console.error("MiniKit check failed:", error);
+          setIsLoading(false);
+        }
       }
     };
 
     checkMiniKit();
+
+    const checkUserLoggedIn = async () => {
+      try {
+        const response = await fetch("/api/auth/me");
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user) {
+            setUser(data.user);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    checkUserLoggedIn();
+
+    return () => {
+      mounted = false;
+      clearTimeout(timeoutId);
+    };
   }, []);
+
+  useEffect(() => {
+    const handleUserChange = (event: CustomEvent) => {
+      setUser(event.detail.user);
+    };
+
+    window.addEventListener("userChange" as any, handleUserChange);
+
+    return () => {
+      window.removeEventListener("userChange" as any, handleUserChange);
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+      });
+      if (response.ok) {
+        setUser(null);
+      } else {
+        console.error("Logout failed");
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
 
   if (isLoading) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center p-4 md:p-8 lg:p-12 bg-gray-50">
-        <div className="flex flex-col items-center justify-center text-center">
-          <svg className="animate-spin h-10 w-10 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
           <p className="mt-4 text-lg font-medium text-gray-900">Loading MiniKit...</p>
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-4 md:p-8 lg:p-12 bg-gray-50">
-      <div className="w-full max-w-md mx-auto space-y-8 py-8">
-        <h1 className="text-2xl font-bold text-center mb-8">WLD 101</h1>
-
-        <section className="bg-white rounded-xl shadow-md p-6 transition-all hover:shadow-lg">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">Login</h2>
-          <Login />
-        </section>
-
-        <section className="bg-white rounded-xl shadow-md p-6 transition-all hover:shadow-lg">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">Wallet Auth</h2>
-          <WalletAuth />
-        </section>
-
-        <section className="bg-white rounded-xl shadow-md p-6 transition-all hover:shadow-lg">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">Incognito Action</h2>
-          <VerifyBlock />
-        </section>
-
-        <section className="bg-white rounded-xl shadow-md p-6 transition-all hover:shadow-lg">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">Payment</h2>
-          <PayBlock />
-        </section>
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+      <div className="w-full max-w-md">
+        {!user ? (
+          <main className="rounded-2xl bg-white p-8 shadow-xl transition-all hover:shadow-2xl">
+            <div className="space-y-8">
+              <div className="text-center">
+                <div className="mb-6 flex justify-center">
+                  <div className="rounded-full p-2 shadow-lg">
+                    <Image
+                      src="/assets/logo.png"
+                      alt="Astracoin Logo"
+                      width={60}
+                      height={60}
+                      className="rounded-full"
+                      priority
+                    />
+                  </div>
+                </div>
+                <h1 className="mb-8 bg-gradient-to-r from-indigo-600 to-blue-500 bg-clip-text text-3xl font-extrabold text-transparent">
+                  Astracoin
+                </h1>
+                <div className="rounded-xl bg-white p-6 shadow-md transition-all hover:shadow-lg">
+                  <h2 className="mb-4 text-xl font-semibold text-gray-800">Login</h2>
+                  {minikitAvailable ? (
+                    <Login />
+                  ) : (
+                    <div className="text-center">
+                      <p className="text-red-500 mb-4">Worldcoin MiniKit is not available</p>
+                      <a
+                        href="https://worldcoin.org/download"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline"
+                      >
+                        Download MiniKit
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </main>
+        ) : (
+          <div className="rounded-2xl bg-white p-8 shadow-xl">
+            <div className="mb-4 flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-gray-800">Welcome</h2>
+              <button
+                onClick={handleLogout}
+                className="text-sm text-gray-500 hover:text-indigo-600 transition-colors flex items-center"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 mr-1"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
+                </svg>
+                Logout
+              </button>
+            </div>
+            <ClaimCoin userAddress={user.walletAddress} />
+          </div>
+        )}
       </div>
-    </main>
+    </div>
   );
 }

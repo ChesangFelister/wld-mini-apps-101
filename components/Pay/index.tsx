@@ -7,15 +7,19 @@ import {
 } from "@worldcoin/minikit-js";
 import { Button, Input, Select } from "@worldcoin/mini-apps-ui-kit-react";
 import { useState } from "react";
+import { ChangeEvent } from "react"; // Ensure ChangeEvent is imported
 
-const sendPayment = async (recipientAddress: string, selectedToken: Tokens, amount: number) => {
+const sendPayment = async (
+  recipientAddress: string,
+  selectedToken: Tokens,
+  amount: number
+) => {
   try {
     const res = await fetch(`/api/initiate-payment`, {
       method: "POST",
     });
 
     const { id } = await res.json();
-
     console.log(id);
 
     const payload: PayCommandInput = {
@@ -50,8 +54,27 @@ const handlePay = async (
     return;
   }
 
+  if (
+    !recipientAddress ||
+    recipientAddress.length < 42 ||
+    !recipientAddress.startsWith("0x")
+  ) {
+    setStatus("Invalid recipient address");
+    return;
+  }
+
+  if (amount <= 0) {
+    setStatus("Amount must be greater than 0");
+    return;
+  }
+
   setStatus("Processing payment...");
-  const sendPaymentResponse = await sendPayment(recipientAddress, selectedToken, amount);
+  const sendPaymentResponse = await sendPayment(
+    recipientAddress,
+    selectedToken,
+    amount
+  );
+
   const response = sendPaymentResponse?.finalPayload;
 
   if (!response) {
@@ -77,58 +100,87 @@ const handlePay = async (
 };
 
 export const PayBlock = () => {
-  const [recipientAddress, setRecipientAddress] = useState(process.env.NEXT_PUBLIC_RECIPIENT_ADDRESS || "");
+  const [recipientAddress, setRecipientAddress] = useState(
+    process.env.NEXT_PUBLIC_RECIPIENT_ADDRESS || ""
+  );
   const [selectedToken, setSelectedToken] = useState<Tokens>(Tokens.WLD);
   const [amount, setAmount] = useState<number>(0.5);
   const [status, setStatus] = useState<string | null>(null);
+
+  // Handle recipient address change
+  const handleRecipientChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setRecipientAddress(e.target.value);
+  };
+
+  // Handle token selection change (updated for compatibility with Select)
+  const handleTokenChange = (value: string) => {
+    setSelectedToken(value as Tokens); // Directly use value and cast it to Tokens
+  };
+
+  // Handle amount change
+  const handleAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setAmount(parseFloat(e.target.value));
+  };
 
   return (
     <div className="flex flex-col items-center gap-4 p-6 border rounded-lg shadow-sm">
       <h3 className="text-xl font-semibold">Buy me a coffee ☕</h3>
       <p className="text-center text-gray-600 mb-4">
-        Enjoyed this app? Buy me a coffee! 🎉 Or change the address to support someone else!
+        Enjoyed this app? Buy me a coffee! 🎉 Or change the address to support
+        someone else!
       </p>
 
       <div className="w-full space-y-4">
-        <Input
-          label="Recipient Address"
-          value={recipientAddress}
-          onChange={(e) => setRecipientAddress(e.target.value)}
-          placeholder="0x..."
-        />
+        <div>
+          <label>Recipient Address</label>
+          <input
+            value={recipientAddress}
+            onChange={handleRecipientChange} // Handler for address input
+            placeholder="0x..."
+            className="w-full"
+          />
+        </div>
 
         <div className="flex gap-4">
-          <Select
-            label="Token"
-            value={selectedToken}
-            onChange={(value) => setSelectedToken(value as Tokens)}
-            options={[
-              { label: "WLD", value: Tokens.WLD },
-              { label: "USDC", value: Tokens.USDCE }
-            ]}
-            className="flex-1"
-          />
+          <div className="flex-1">
+            <Select
+              value={selectedToken}
+              onChange={handleTokenChange} // Updated to handle value directly
+              options={[
+                { label: "WLD", value: Tokens.WLD },
+                { label: "USDC", value: Tokens.USDCE },
+              ]}
+            />
+          </div>
 
-          <Input
-            label="Amount"
-            type="number"
-            value={amount.toString()}
-            onChange={(e) => setAmount(parseFloat(e.target.value))}
-            placeholder="0.5"
-            className="flex-1"
-          />
+          <div className="flex-1">
+            <label>Amount</label>
+            <input
+              type="number"
+              value={amount.toString()}
+              onChange={handleAmountChange} // Handler for amount input
+              placeholder="0.5"
+              className="w-full"
+            />
+          </div>
         </div>
       </div>
 
       <Button
-        onClick={() => handlePay(recipientAddress, selectedToken, amount, setStatus)}
+        onClick={() =>
+          handlePay(recipientAddress, selectedToken, amount, setStatus)
+        }
         className="w-full mt-2"
       >
         Buy Coffee
       </Button>
 
       {status && (
-        <div className={`mt-2 text-center ${status.includes("Thank you") ? "text-green-600" : "text-red-600"}`}>
+        <div
+          className={`mt-2 text-center ${
+            status.includes("Thank you") ? "text-green-600" : "text-red-600"
+          }`}
+        >
           {status}
         </div>
       )}
