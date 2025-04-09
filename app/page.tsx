@@ -117,7 +117,7 @@ export default function Home() {
                   Astracoin
                 </h1>
                 <div className="rounded-xl bg-white p-6 shadow-md transition-all hover:shadow-lg">
-                  <h2 className="mb-4 text-xl font-semibold text-gray-800">Login</h2>
+                  {/* <h2 className="mb-4 text-xl font-semibold text-gray-800">Login</h2> */}
                   {minikitAvailable ? (
                     <Login />
                   ) : (

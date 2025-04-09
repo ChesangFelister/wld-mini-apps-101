@@ -392,14 +392,13 @@ export function ClaimCoin({ userAddress }: ClaimCoinProps) {
         </div>
       )}
 
-      {/* Tasks Tab Content */}
       {activeTab === 'tasks' && (
         <div className="tasks-container">
           <div className="task-card">
             <div className="task-status">
               <h3>Social Media Status</h3>
               <div className="task-badge">
-                {Object.values(socialFollowed).filter(Boolean).length} / 4 completed
+                {Object.values(socialFollowed).filter(Boolean).length} 
               </div>
             </div>
 
