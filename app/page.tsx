@@ -2,8 +2,15 @@
 import { useEffect, useState } from "react";
 import { MiniKit } from "@worldcoin/minikit-js";
 import { Login } from "@/components/Login";
-import { User } from "@/types/user";
+import Image from "next/image";
 import { ClaimCoin } from "@/components/ClaimCoin";
+
+// Updated User interface to match the one in Login component
+interface User {
+  walletAddress: string;
+  username: string | null; // Changed from string | undefined to string | null
+  profilePictureUrl?: string | null;
+}
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
@@ -51,7 +58,6 @@ export default function Home() {
       const response = await fetch("/api/auth/logout", {
         method: "POST",
       });
-
       if (response.ok) {
         setIsLoggedIn(false);
         setUser(null);
@@ -103,9 +109,12 @@ export default function Home() {
       <div className="w-full max-w-md mx-auto space-y-8 py-8">
         <div className="text-center mb-12">
           <div className="inline-block rounded-full shadow-lg mb-4">
-            <img
+            <Image
               src="https://assets.onecompiler.app/42p32vw56/43bcqbgx8/1000012334.png"
               className="h-10 w-10 text-white"
+              alt=""
+              width={40}
+              height={40}
             />
           </div>
           <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-500">
@@ -115,7 +124,6 @@ export default function Home() {
             The future of decentralized currency
           </p>
         </div>
-
         {isLoggedIn && user ? (
           <>
             <section className="bg-white rounded-2xl shadow-xl p-8 transition-all hover:shadow-2xl border border-gray-100">
@@ -157,7 +165,6 @@ export default function Home() {
                   Logout
                 </button>
               </div>
-
               <div className="bg-indigo-50 rounded-lg p-4 mb-6">
                 <p className="text-sm text-indigo-800 flex items-center">
                   <svg
@@ -183,14 +190,10 @@ export default function Home() {
                   </span>
                 </p>
               </div>
-
-              <div className="p-1 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-xl">
-                <div className="bg-white p-4 rounded-lg">
-                  <ClaimCoin userAddress={user.walletAddress} />
-                </div>
+              <div>
+                <ClaimCoin userAddress={user.walletAddress} />
               </div>
             </section>
-
             <section className="bg-white rounded-2xl shadow-xl p-8 transition-all hover:shadow-2xl border border-gray-100">
               <h2 className="text-xl font-semibold mb-6 text-gray-800 flex items-center">
                 <svg
@@ -228,24 +231,21 @@ export default function Home() {
               Connect with World ID to access your Astracoin wallet and start
               claiming your coins.
             </p>
-
             {loginError && (
               <div className="mb-4 text-red-500 text-center">{loginError}</div>
             )}
-
             <div className="bg-white p-4 rounded-lg">
+              {/* Fixed the Login component syntax */}
               <Login
                 onLoginSuccess={handleLoginSuccess}
                 onLoginError={handleLoginError}
               />
             </div>
-
-            <p className="mt-4 text-sm text-gray-500 text-center">
+            {/* <p className="mt-4 text-sm text-gray-500 text-center">
               New to Astracoin? Create an account
-            </p>
+            </p> */}
           </section>
         )}
-
         <div className="text-center mt-8 text-sm text-gray-500">
           <p>© 2025 Astracoin. All rights reserved.</p>
           <div className="flex justify-center space-x-4 mt-4">

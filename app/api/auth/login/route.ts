@@ -1,3 +1,4 @@
+"use client";
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import { MiniAppWalletAuthSuccessPayload, verifySiweMessage } from '@worldcoin/minikit-js'
@@ -8,6 +9,7 @@ interface IRequestPayload {
 	payload: MiniAppWalletAuthSuccessPayload
 	nonce: string
 }
+
 // Mock implementation - replace with actual DB call
 async function findOrCreateUser(walletAddress: string) {
 	console.log(`Finding or creating user with wallet: ${walletAddress}`);
@@ -26,7 +28,7 @@ export const POST = async (req: NextRequest) => {
 	const cookieStore = await cookies()
 	const siwe = cookieStore.get('siwe')
 
-	if (nonce != siwe?.value) {
+	if (nonce !== siwe?.value) {
 		return NextResponse.json({
 			status: 'error',
 			isValid: false,
@@ -56,14 +58,8 @@ export const POST = async (req: NextRequest) => {
 			.setJti(nanoid())
 			.sign(new TextEncoder().encode(process.env.JWT_SECRET || 'fallback_secret_replace_in_production'));
 
-		cookieStore.set('auth_token', token, {
-			httpOnly: true,
-			secure: process.env.NODE_ENV === 'production',
-			maxAge: 60 * 60 * 24 * 7, // 7 days
-			path: '/',
-		});
-
-		return NextResponse.json({
+		// ✅ Create response and set cookie properly
+		const response = NextResponse.json({
 			status: 'success',
 			isValid: true,
 			user: {
@@ -73,10 +69,20 @@ export const POST = async (req: NextRequest) => {
 				profilePictureUrl: user.profilePictureUrl,
 				isNewUser: user.isNewUser
 			}
-		})
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		});
+
+		response.cookies.set({
+			name: 'auth_token',
+			value: token,
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			maxAge: 60 * 60 * 24 * 7, // 7 days
+			path: '/',
+		});
+
+		return response;
+
 	} catch (error: any) {
-		// Handle errors in validation or processing
 		return NextResponse.json({
 			status: 'error',
 			isValid: false,

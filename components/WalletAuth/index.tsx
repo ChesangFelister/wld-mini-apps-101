@@ -1,7 +1,9 @@
 "use client";
 import { MiniKit, WalletAuthInput } from "@worldcoin/minikit-js";
 import { Button } from "@worldcoin/mini-apps-ui-kit-react";
-import { useCallback, useEffect, useState } from "react";
+// Removed useEffect from imports since it's not used
+import { useCallback, useState } from "react";
+import Image from "next/image";
 
 const walletAuthInput = (nonce: string): WalletAuthInput => {
     return {
@@ -27,14 +29,15 @@ export const WalletAuth = () => {
             console.warn('Tried to invoke "walletAuth", but MiniKit is not installed.')
             return;
         }
-
-        const res = await fetch(`/api/nonce`)
-        const { nonce } = await res.json()
-
-        const { commandPayload: generateMessageResult, finalPayload } = await MiniKit.commandsAsync.walletAuth(walletAuthInput(nonce))
-
+        
+        const res = await fetch(`/api/nonce`);
+        const { nonce } = await res.json();
+        
+        // Destructured only finalPayload since generateMessageResult is not used
+        const { finalPayload } = await MiniKit.commandsAsync.walletAuth(walletAuthInput(nonce));
+        
         if (finalPayload.status === 'error') {
-            return
+            return;
         } else {
             const response = await fetch('/api/complete-siwe', {
                 method: 'POST',
@@ -45,10 +48,10 @@ export const WalletAuth = () => {
                     payload: finalPayload,
                     nonce,
                 }),
-            })
-
+            });
+            
             if (response.status === 200) {
-                setUser(MiniKit.user)
+                setUser(MiniKit.user);
             }
         }
     };
@@ -66,9 +69,11 @@ export const WalletAuth = () => {
                     <div className="text-green-600 font-medium">✓ Connected</div>
                     <div className="flex items-center space-x-2">
                         {user?.profilePictureUrl && (
-                            <img
+                            <Image
                                 src={user.profilePictureUrl}
                                 alt="Profile"
+                                width={32}
+                                height={32}
                                 className="w-8 h-8 rounded-full"
                             />
                         )}
@@ -86,5 +91,5 @@ export const WalletAuth = () => {
                 </div>
             )}
         </div>
-    )
+    );
 };

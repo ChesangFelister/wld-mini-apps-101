@@ -1,55 +1,50 @@
-import { cookies } from 'next/headers';
+// app/api/auth/me/route.ts
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 
-// Mock implementation - replace with actual DB call
-async function getUserById(userId: string) {
-    console.log(`Getting user with ID: ${userId}`);
-
-    return {
-        id: userId,
-        walletAddress: "0x0eb431cd91e7abbd29a204b2edf33636ad45ed08",
-        username: "lemike.1234",
-        profilePictureUrl: "https://i.pravatar.cc/150?img=1",
-        isNewUser: false
-    };
-}
+export const dynamic = 'force-dynamic'; // Prevent static optimization
 
 export async function GET() {
-    try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('auth_token');
-        
-        if (!token) {
-            return NextResponse.json({ 
-                authenticated: false,
-                message: 'Not authenticated' 
-            }, { status: 401 });
-        }
-        
-        const { payload } = await jwtVerify(
-            token.value,
-            new TextEncoder().encode(process.env.JWT_SECRET || 'fallback_secret_replace_in_production')
-        );
-        
-        if (!payload.userId) {
-            return NextResponse.json({ 
-                authenticated: false,
-                message: 'Invalid token' 
-            }, { status: 401 });
-        }
+  try {
+    const cookieStore = cookies();
+    const token = cookieStore.get('auth_token')?.value;
 
-        const user = await getUserById(payload.userId as string);
-        
-        return NextResponse.json({
-            authenticated: true,
-            user: user
-        });
-    } catch (error) {
-        console.error('Auth error:', error);
-        return NextResponse.json({ 
-            authenticated: false,
-            message: 'Authentication error' 
-        }, { status: 401 });
+    if (!token) {
+      return NextResponse.json(
+        { authenticated: false, message: 'No token found' },
+        { status: 401 }
+      );
     }
+
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET || '');
+    const { payload } = await jwtVerify(token, secret);
+
+    if (!payload.userId) {
+      return NextResponse.json(
+        { authenticated: false, message: 'Invalid token' },
+        { status: 401 }
+      );
+    }
+
+    // Mock user - replace with your actual user lookup
+    const user = {
+      id: payload.userId,
+      walletAddress: payload.walletAddress,
+      username: "user_" + Math.random().toString(36).substring(2, 8),
+      isNewUser: false
+    };
+
+    return NextResponse.json({
+      authenticated: true,
+      user
+    });
+
+  } catch (error) {
+    console.error('Auth error:', error);
+    return NextResponse.json(
+      { authenticated: false, message: 'Authentication failed' },
+      { status: 500 }
+    );
+  }
 }

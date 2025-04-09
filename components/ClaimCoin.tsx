@@ -74,7 +74,7 @@ export function ClaimCoin({ userAddress }: ClaimCoinProps) {
     discord: false,
     instagram: false
   });
-  const [balance, setBalance] = useState(5000); // User's ASTRA balance
+  // const [balance, setBalance] = useState(5000); // User's ASTRA balance
 
   // Load social platform follow status
   useEffect(() => {
@@ -192,7 +192,7 @@ export function ClaimCoin({ userAddress }: ClaimCoinProps) {
       localStorage.setItem(`lastClaim_${userAddress}`, new Date().toISOString());
 
       // Update balance
-      setBalance(prevBalance => prevBalance + 1000);
+      // setBalance(prevBalance => prevBalance + 1000);
 
       // Show success screen
       setClaimSuccess(true);
@@ -287,7 +287,7 @@ export function ClaimCoin({ userAddress }: ClaimCoinProps) {
           WebkitTextFillColor: 'transparent',
           fontSize: '2rem'
         }}>
-          {(balance).toLocaleString()} ASTRA
+          {/* {(balance).toLocaleString()} ASTRA */}
         </div>
       </div>
     );
@@ -296,16 +296,10 @@ export function ClaimCoin({ userAddress }: ClaimCoinProps) {
   // Main component
   return (
     <div className="claim-coin-container">
-      {/* Daily Claim Header */}
-      <div className="astra-header">
-        <div className="astra-daily-badge">Daily Astra Claim</div>
-        <div className="astra-amount-display">
-          <div className="astra-coin-icon">$</div>
-          <span>5,000 ASTRA</span>
-        </div>
-      </div>
+     
+      <h1 className=' text-blue-800'>Daily Astra Claim</h1>
+      <p>Claim your daily rewards and earn Astra tokens</p>
 
-      {/* Tab Navigation */}
       <div className="tab-container">
         <button
           onClick={() => setActiveTab('claim')}
@@ -323,14 +317,11 @@ export function ClaimCoin({ userAddress }: ClaimCoinProps) {
         </button>
       </div>
 
-      {/* Claim Tab Content */}
       {activeTab === 'claim' && (
         <div className="claim-section">
           {/* Reward Card */}
           <div className="reward-card">
-            <h2>Daily Astra Claim</h2>
-            <p>Claim your daily rewards and earn Astra tokens</p>
-            
+            <h2>Daily Reward</h2>
             <div className="reward-amount">
               <span>1,000 ASTRA</span>
             </div>
@@ -347,55 +338,49 @@ export function ClaimCoin({ userAddress }: ClaimCoinProps) {
               </div>
             )}
 
-            {hasClaimed ? (
-              <>
-                <button className="already-claimed-btn" disabled>
-                  Already Claimed
-                </button>
-                {countdown && (
-                  <div className="countdown-container" aria-label="Time until next claim">
-                    <div className="countdown-item">
-                      <div className="countdown-value">{countdown.hours.toString().padStart(2, '0')}</div>
-                      <div className="countdown-label">Hours</div>
-                    </div>
-                    <div className="countdown-item">
-                      <div className="countdown-value">{countdown.minutes.toString().padStart(2, '0')}</div>
-                      <div className="countdown-label">Minutes</div>
-                    </div>
-                    <div className="countdown-item">
-                      <div className="countdown-value">{countdown.seconds.toString().padStart(2, '0')}</div>
-                      <div className="countdown-label">Seconds</div>
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <button
-                onClick={handleClaim}
-                disabled={isClaiming || !allSocialFollowed}
-                className="claim-button"
-                aria-label="Claim rewards"
-              >
-                {isClaiming ? (
-                  <>
-                    <svg className="spinner" viewBox="0 0 24 24">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Processing...
-                  </>
-                ) : !allSocialFollowed ? (
-                  'Follow All Channels to Claim'
-                ) : (
-                  'Claim Tokens'
-                )}
-              </button>
+            <button
+              onClick={handleClaim}
+              disabled={isClaiming || hasClaimed || !allSocialFollowed}
+              className="claim-button"
+              aria-label="Claim rewards"
+            >
+              {isClaiming ? (
+                <>
+                  <svg className="spinner" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Processing...
+                </>
+              ) : hasClaimed ? (
+                'Already Claimed'
+              ) : !allSocialFollowed ? (
+                'Follow All Channels to Claim'
+              ) : (
+                'Claim 1,000 ASTRA Now'
+              )}
+            </button>
+
+            {hasClaimed && countdown && (
+              <div className="countdown-container" aria-label="Time until next claim">
+                <div className="countdown-item">
+                  <div className="countdown-value">{countdown.hours.toString().padStart(2, '0')}</div>
+                  <div className="countdown-label">Hours</div>
+                </div>
+                <div className="countdown-item">
+                  <div className="countdown-value">{countdown.minutes.toString().padStart(2, '0')}</div>
+                  <div className="countdown-label">Minutes</div>
+                </div>
+                <div className="countdown-item">
+                  <div className="countdown-value">{countdown.seconds.toString().padStart(2, '0')}</div>
+                  <div className="countdown-label">Seconds</div>
+                </div>
+              </div>
             )}
           </div>
 
-          {/* Follow Card */}
           <div className="follow-card">
-            <h2>Follow Requirements</h2>
+            <h2 className='text- text-blue-800'>Follow Requirements</h2>
             <p>Follow our official channels to claim</p>
 
             <div className="social-grid">
@@ -443,37 +428,37 @@ export function ClaimCoin({ userAddress }: ClaimCoinProps) {
 
             <div className="benefit-list">
               <div className="benefit-item">
-                <div className="benefit-icon" style={{ backgroundColor: '#e3f2fd' }}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#1976D2" strokeWidth="2">
+                <div className="benefit-icon" style={{ backgroundColor: '#1976D2' }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
                 <div>
-                  <h4>Stay Updated</h4>
+                  <h4 style={{color:'blue'}}>Stay Updated</h4>
                   <p>Get the latest news and updates about AstraCoin</p>
                 </div>
               </div>
 
               <div className="benefit-item">
-                <div className="benefit-icon" style={{ backgroundColor: '#f3e5f5' }}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#9C27B0" strokeWidth="2">
+                <div className="benefit-icon" style={{ backgroundColor: '#9C27B0' }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
                 </div>
                 <div>
-                  <h4>Exclusive Content</h4>
+                  <h4 style={{color:'blue'}}>Exclusive Content</h4>
                   <p>Access to exclusive content and announcements</p>
                 </div>
               </div>
 
               <div className="benefit-item">
-                <div className="benefit-icon" style={{ backgroundColor: '#e8f5e9' }}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#4CAF50" strokeWidth="2">
+                <div className="benefit-icon" style={{ backgroundColor: '#4CAF50' }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
                 <div>
-                  <h4>Bonus Rewards</h4>
+                  <h4 style={{color:'blue'}}>Bonus Rewards</h4>
                   <p>Unlock bonus rewards and airdrops</p>
                 </div>
               </div>
@@ -481,14 +466,14 @@ export function ClaimCoin({ userAddress }: ClaimCoinProps) {
           </div>
 
           <div className="coming-soon-section">
-            <h3 style={{ marginBottom: '15px' }}>Coming Soon</h3>
+            <h1 style={{ marginBottom: '15px',fontSize:'bold',color:'black' }}>Coming Soon</h1>
 
             <div className="coming-soon-item">
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#6e8efb" strokeWidth="2" style={{ marginRight: '8px' }}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
                 </svg>
-                <span>Global Staking</span>
+                <span style={{color:'blue'}}>Global Staking</span>
               </div>
               <span className="coming-soon-badge">Soon</span>
             </div>
@@ -498,7 +483,7 @@ export function ClaimCoin({ userAddress }: ClaimCoinProps) {
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#a777e3" strokeWidth="2" style={{ marginRight: '8px' }}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                 </svg>
-                <span>NFT Rewards</span>
+                <span style={{color:'blue'}}>NFT Rewards</span>
               </div>
               <span className="coming-soon-badge">Soon</span>
             </div>

@@ -573,6 +573,7 @@ p {
   .tab-button {
     padding: 10px 5px;
     font-size: 0.8rem;
+    color: black;
   }
 
   .countdown-item {
@@ -586,5 +587,7 @@ p {
 .countdown-label{
   font-size: 10px;
 }
-  
+  /* .countdown-label {
+    font-size: 10px;
+  } */
 }

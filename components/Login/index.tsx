@@ -20,10 +20,12 @@ type User = {
 
 type LoginProps = {
     onLoginSuccess?: (user: User) => void;
+    onLoginError?: (error: string) => void;
 };
 
-export const Login = ({ onLoginSuccess }: LoginProps) => {
-    const [user, setUser] = useState<User | null>(null);
+export const Login = ({ onLoginSuccess, onLoginError }: LoginProps) => {
+    // We're keeping the user state but prefixing with underscore to indicate it's used indirectly
+    const [_user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(false);
     
     const refreshUserData = useCallback(async () => {
@@ -40,8 +42,11 @@ export const Login = ({ onLoginSuccess }: LoginProps) => {
             }
         } catch (error) {
             console.error("Error fetching user data:", error);
+            if (onLoginError) {
+                onLoginError("Failed to fetch user data");
+            }
         }
-    }, [onLoginSuccess]);
+    }, [onLoginSuccess, onLoginError]);
     
     useEffect(() => {
         refreshUserData();
@@ -53,8 +58,12 @@ export const Login = ({ onLoginSuccess }: LoginProps) => {
             const res = await fetch(`/api/nonce`);
             const { nonce } = await res.json();
             const { finalPayload } = await MiniKit.commandsAsync.walletAuth(walletAuthInput(nonce));
+            
             if (finalPayload.status === 'error') {
                 setLoading(false);
+                if (onLoginError) {
+                    onLoginError("Authentication failed");
+                }
                 return;
             } else {
                 const response = await fetch('/api/auth/login', {
@@ -67,6 +76,7 @@ export const Login = ({ onLoginSuccess }: LoginProps) => {
                         nonce,
                     }),
                 });
+                
                 if (response.status === 200) {
                     const userData = await response.json();
                     const userInfo = userData.user || MiniKit.user;
@@ -74,12 +84,19 @@ export const Login = ({ onLoginSuccess }: LoginProps) => {
                     if (onLoginSuccess) {
                         onLoginSuccess(userInfo);
                     }
+                } else {
+                    if (onLoginError) {
+                        onLoginError("Login failed");
+                    }
                 }
                 setLoading(false);
             }
         } catch (error) {
             console.error("Login error:", error);
             setLoading(false);
+            if (onLoginError) {
+                onLoginError("An error occurred during login");
+            }
         }
     };
 

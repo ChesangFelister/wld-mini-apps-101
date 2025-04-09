@@ -13,11 +13,9 @@ const sendPayment = async (recipientAddress: string, selectedToken: Tokens, amou
     const res = await fetch(`/api/initiate-payment`, {
       method: "POST",
     });
-
     const { id } = await res.json();
-
     console.log(id);
-
+    
     const payload: PayCommandInput = {
       reference: id,
       to: recipientAddress,
@@ -29,6 +27,7 @@ const sendPayment = async (recipientAddress: string, selectedToken: Tokens, amou
       ],
       description: "Thanks for the coffee! ☕",
     };
+    
     if (MiniKit.isInstalled()) {
       return await MiniKit.commandsAsync.pay(payload);
     }
@@ -49,22 +48,23 @@ const handlePay = async (
     setStatus("MiniKit is not installed");
     return;
   }
-
+  
   setStatus("Processing payment...");
   const sendPaymentResponse = await sendPayment(recipientAddress, selectedToken, amount);
   const response = sendPaymentResponse?.finalPayload;
-
+  
   if (!response) {
     setStatus("Payment failed");
     return;
   }
-
-  if (response.status == "success") {
+  
+  if (response.status === "success") {
     const res = await fetch(`/api/confirm-payment`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ payload: response }),
     });
+    
     const payment = await res.json();
     if (payment.success) {
       setStatus("Thank you for the coffee! ☕");
@@ -88,45 +88,55 @@ export const PayBlock = () => {
       <p className="text-center text-gray-600 mb-4">
         Enjoyed this app? Buy me a coffee! 🎉 Or change the address to support someone else!
       </p>
-
+      
       <div className="w-full space-y-4">
-        <Input
-          label="Recipient Address"
-          value={recipientAddress}
-          onChange={(e) => setRecipientAddress(e.target.value)}
-          placeholder="0x..."
-        />
-
-        <div className="flex gap-4">
-          <Select
-            label="Token"
-            value={selectedToken}
-            onChange={(value) => setSelectedToken(value as Tokens)}
-            options={[
-              { label: "WLD", value: Tokens.WLD },
-              { label: "USDC", value: Tokens.USDCE }
-            ]}
-            className="flex-1"
-          />
-
+        <div className="space-y-1">
+          <label className="block text-sm font-medium text-gray-700">
+            Recipient Address
+          </label>
           <Input
-            label="Amount"
-            type="number"
-            value={amount.toString()}
-            onChange={(e) => setAmount(parseFloat(e.target.value))}
-            placeholder="0.5"
-            className="flex-1"
+            value={recipientAddress}
+            onChange={(e) => setRecipientAddress(e.target.value)}
+            placeholder="0x..."
           />
         </div>
+        
+        <div className="flex gap-4">
+          <div className="flex-1 space-y-1">
+            <label className="block text-sm font-medium text-gray-700">
+              Token
+            </label>
+            <Select
+              value={selectedToken}
+              onChange={(value) => setSelectedToken(value as Tokens)}
+              options={[
+                { label: "WLD", value: Tokens.WLD },
+                { label: "USDC", value: Tokens.USDCE }
+              ]}
+            />
+          </div>
+          
+          <div className="flex-1 space-y-1">
+            <label className="block text-sm font-medium text-gray-700">
+              Amount
+            </label>
+            <Input
+              type="number"
+              value={amount.toString()}
+              onChange={(e) => setAmount(parseFloat(e.target.value))}
+              placeholder="0.5"
+            />
+          </div>
+        </div>
       </div>
-
+      
       <Button
         onClick={() => handlePay(recipientAddress, selectedToken, amount, setStatus)}
         className="w-full mt-2"
       >
         Buy Coffee
       </Button>
-
+      
       {status && (
         <div className={`mt-2 text-center ${status.includes("Thank you") ? "text-green-600" : "text-red-600"}`}>
           {status}
